@@ -24,11 +24,11 @@ gameWindow = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Heck-By Rudransh")
 pygame.display.update()
 
-heck1 = pygame.image.load('.\py program\heck\heckchar.png').convert_alpha()
+heck1 = pygame.image.load('.\heckchar.png').convert_alpha()
 heck1 = pygame.transform.scale(heck1,(50,50))
-security = pygame.image.load('.\py program\heck\htool.png').convert_alpha()
+security = pygame.image.load('.\htool.png').convert_alpha()
 security = pygame.transform.scale(security,(50,50))
-firewall= pygame.image.load('.\py program\heck\hfirewall.png')
+firewall= pygame.image.load('.\hfirewall.png')
 firewall= pygame.transform.scale(firewall,(50,50))
 
 score=0
