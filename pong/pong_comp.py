@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import *
-import random
+import random as rd
 import time
 pygame.init()
 pygame.font.init()
