@@ -1,9 +1,10 @@
-import pygame
+import pygame as pg
 from pygame.locals import *
 import random as rd
 import time
-pygame.init()
-pygame.font.init()
+import os as os
+pg.init()
+pg.font.init()
 clock = pg.time.Clock()
     
 white = (255,255,255)
@@ -12,46 +13,15 @@ green = (0,255,0)
 yellow = (255,165,0)
 red=(255,0,0)
 
+
+car = pg.image.load('.\car.png')
+car = pg.transform.scale(car,(40,40))
 font = pg.font.Font('freesansbold.ttf', 32)
 
 width = 1000
 height = 480
 window = pg.display.set_mode((width,height))
 pg.display.set_caption ("CrossyRoad")
-
-def text_screen(text,incolor,outcol,x,y):
-    screen_text = font.render(text,True,incolor,outcol)
-    window.blit(screen_text,[x,y])
-
-def welcome():
-    exit_game = False
-    window.fill(red)
-    while not exit_game:
-        text_screen("Welcome to The CrossyRoad",green,black,150,200)
-        text_screen("-By Rudransh Bhardwaj",green,black,150,250)
-        text_screen("(press Any key to play)",green,black,150,300)
-        for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    exit_game = True
-                if event.type == pg.KEYDOWN :
-                    gameloop()
-        pg.display.update()
-    clock.tick(60)
-
-def gameoverf():
-    gameover = False
-    while not gameover:
-        window.fill(red)
-        text_screen("Game over ?!?!?!?!",green,black,100,200)
-        text_screen("press Any key to play again",green,black,100,250)
-        for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    gameover = True
-                if event.type == pg.KEYDOWN :
-                    welcome()
-        pg.display.update()
-    clock.tick(60)
-    
 
 def gameloop():
     
@@ -108,17 +78,27 @@ def gameloop():
         pg.draw.rect(window,yellow,[xcor,ycor,20,20])
         
         #cars
-        pg.draw.rect(window,green,[xecor1,yecor1,20,20])
-        pg.draw.rect(window,green,[xecor2,yecor2,20,20])
-        pg.draw.rect(window,green,[xecor3,yecor3,20,20])
-        pg.draw.rect(window,green,[xecor4,yecor4,20,20])
-        pg.draw.rect(window,green,[xecor5,yecor5,20,20])
-        pg.draw.rect(window,green,[xecor6,yecor6,20,20])
-        pg.draw.rect(window,green,[xecor7,yecor7,20,20])
-        pg.draw.rect(window,green,[xecor8,yecor8,20,20])
-        pg.draw.rect(window,green,[xecor9,yecor9,20,20])
-        pg.draw.rect(window,green,[xecor10,yecor10,20,20])
+        # pg.draw.rect(window,green,[xecor1,yecor1,20,20])
+        # pg.draw.rect(window,green,[xecor2,yecor2,20,20])
+        # pg.draw.rect(window,green,[xecor3,yecor3,20,20])
+        # pg.draw.rect(window,green,[xecor4,yecor4,20,20])
+        # pg.draw.rect(window,green,[xecor5,yecor5,20,20])
+        # pg.draw.rect(window,green,[xecor6,yecor6,20,20])
+        # pg.draw.rect(window,green,[xecor7,yecor7,20,20])
+        # pg.draw.rect(window,green,[xecor8,yecor8,20,20])
+        # pg.draw.rect(window,green,[xecor9,yecor9,20,20])
+        # pg.draw.rect(window,green,[xecor10,yecor10,20,20])
         
+        window.blit(car,[xecor1,yecor1])
+        window.blit(car,[xecor2,yecor2])
+        window.blit(car,[xecor3,yecor3])
+        window.blit(car,[xecor4,yecor4])
+        window.blit(car,[xecor5,yecor5])
+        window.blit(car,[xecor6,yecor6])
+        window.blit(car,[xecor7,yecor7])
+        window.blit(car,[xecor8,yecor8])
+        window.blit(car,[xecor9,yecor9])
+        window.blit(car,[xecor10,yecor10])
         ##################################################
 
         pg.time.Clock()
@@ -143,8 +123,13 @@ def gameloop():
         
         if ycor<80 :
             window.fill(green)
-            text_screen("Yeah !! (game finished)")
-            pg.display.update()
+            gameor = True
+            while gameor:
+                for event in pg.event.get():
+                    if event.type == pg.QUIT:
+                        exit()
+                text_screen("Yeah !! (game finished)",green,black,150,200)
+                pg.display.update()
             
         if xecor1>900 :
             xecor1 = 20
@@ -176,25 +161,25 @@ def gameloop():
             
             
             #################################################
-        if abs(xcor-xecor1)<20 and abs(ycor-yecor1)<20 :
+        if abs(xcor-xecor1)<40 and abs(ycor-yecor1)<40 :
             gameover = True
-        if abs(xcor-xecor2)<20 and abs(ycor-yecor2)<20 :
+        if abs(xcor-xecor2)<40 and abs(ycor-yecor2)<40 :
             gameover = True
-        if abs(xcor-xecor3)<20 and abs(ycor-yecor3)<20 :
+        if abs(xcor-xecor3)<40 and abs(ycor-yecor3)<40 :
             gameover = True
-        if abs(xcor-xecor4)<20 and abs(ycor-yecor4)<20 :
+        if abs(xcor-xecor4)<40 and abs(ycor-yecor4)<40 :
             gameover = True
-        if abs(xcor-xecor5)<20 and abs(ycor-yecor5)<20 :
+        if abs(xcor-xecor5)<40 and abs(ycor-yecor5)<40 :
             gameover = True
-        if abs(xcor-xecor6)<20 and abs(ycor-yecor6)<20 :
+        if abs(xcor-xecor6)<40 and abs(ycor-yecor6)<40 :
             gameover = True
-        if abs(xcor-xecor7)<20 and abs(ycor-yecor7)<20 :
+        if abs(xcor-xecor7)<40 and abs(ycor-yecor7)<40 :
             gameover = True
-        if abs(xcor-xecor8)<20 and abs(ycor-yecor8)<20 :
+        if abs(xcor-xecor8)<40 and abs(ycor-yecor8)<40 :
             gameover = True
-        if abs(xcor-xecor9)<20 and abs(ycor-yecor9)<20 :
+        if abs(xcor-xecor9)<40 and abs(ycor-yecor9)<40 :
             gameover = True
-        if abs(xcor-xecor10)<20 and abs(ycor-yecor10)<20 :
+        if abs(xcor-xecor10)<40 and abs(ycor-yecor10)<40 :
             gameover = True
             
             
@@ -205,6 +190,42 @@ def gameloop():
     clock.tick(60)
     
     
+
+def text_screen(text,incolor,outcol,x,y):
+    screen_text = font.render(text,True,incolor,outcol)
+    window.blit(screen_text,[x,y])
+
+def welcome():
+    exit_game = False
+    window.fill(red)
+    while not exit_game:
+        text_screen("Welcome to The CrossyRoad",green,black,150,200)
+        text_screen("-By Rudransh Bhardwaj",green,black,150,250)
+        text_screen("(press Any key to play)",green,black,150,300)
+        for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    exit_game = True
+                if event.type == pg.KEYDOWN :
+                    gameloop()
+        pg.display.update()
+    clock.tick(60)
+
+def gameoverf():
+    gameover = False
+    while not gameover:
+        window.fill(red)
+        text_screen("Game over ?!?!?!?!",green,black,100,200)
+        text_screen("press Any key to play again",green,black,100,250)
+        for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    gameover = True
+                if event.type == pg.KEYDOWN :
+                    welcome()
+        pg.display.update()
+    clock.tick(60)
+    
+
+
 
 welcome()
 
