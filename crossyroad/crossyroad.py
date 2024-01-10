@@ -14,6 +14,10 @@ yellow = (255,165,0)
 red=(255,0,0)
 
 
+c = pg.image.load('.\chich.png')
+c = pg.transform.scale(c,(40,40))
+
+
 car = pg.image.load('.\car.png')
 car = pg.transform.scale(car,(40,40))
 font = pg.font.Font('freesansbold.ttf', 32)
@@ -99,6 +103,7 @@ def gameloop():
         window.blit(car,[xecor8,yecor8])
         window.blit(car,[xecor9,yecor9])
         window.blit(car,[xecor10,yecor10])
+        window.blit(c,[xcor,ycor])
         ##################################################
 
         pg.time.Clock()
