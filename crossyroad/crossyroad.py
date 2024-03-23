@@ -114,7 +114,7 @@ def gameloop():
         xecor2 += 0.09
         xecor3 += 0.09
         xecor4 += 0.09
-        xecor5 += 0.09
+        xecor5 += 0.09   
         xecor6 += 0.09
         xecor7 += 0.09
         xecor8 += 0.09
