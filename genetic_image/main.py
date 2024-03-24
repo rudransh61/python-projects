@@ -1,19 +1,22 @@
 import random
 import numpy as np
 from PIL import Image, ImageDraw
+from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import mean_squared_error
+import matplotlib.pyplot as plt
 
 # Parameters
 POPULATION_SIZE = 100
 NUM_POLYGONS = 50
 MAX_VERTICES = 30
-IMAGE_WIDTH = 100
-IMAGE_HEIGHT = 100
-NUM_GENERATIONS = 500
+IMAGE_WIDTH = 200
+IMAGE_HEIGHT = 200
+NUM_GENERATIONS = 100
 INITIAL_MUTATION_RATE = 0.05
-MAX_MUTATION_RATE = 0.1
+MAX_MUTATION_RATE = 0.5
 
 # Load target image
-target_image = Image.open("landscape.jpg").convert("RGB")
+target_image = Image.open("milees.jpg").convert("RGB")
 
 def random_color():
     return tuple(np.random.randint(0, 256, size=3))
@@ -29,7 +32,6 @@ def draw_polygon(draw, vertices, color):
 
 def generate_individual():
     return [random_polygon() for _ in range(NUM_POLYGONS)]
-
 def fitness(individual):
     # Create image based on individual
     image = Image.new("RGB", (IMAGE_WIDTH, IMAGE_HEIGHT), "white")
@@ -39,9 +41,16 @@ def fitness(individual):
     # Resize the image to match the target image dimensions
     image = image.resize((target_image.width, target_image.height))
     
-    # Calculate fitness based on pixel-wise difference
-    diff = np.array(target_image) - np.array(image)
-    return -np.sum(np.abs(diff))  # Negative because we want to maximize fitness
+    # Convert images to numpy arrays
+    target_array = np.array(target_image)
+    generated_array = np.array(image)
+    
+    # Compute Mean Squared Error (MSE)
+    mse = mean_squared_error(target_array, generated_array)
+    
+    # Return the negative of MSE as fitness score (since we want to maximize fitness)
+    return -mse
+
 
 def mutate_individual(individual, mutation_rate):
     mutated_individual = []
@@ -70,8 +79,8 @@ def evolve(population, mutation_rate):
     offspring = []
 
     for _ in range(len(population) - elites_count):
-        parent1 = random.choice(graded)
-        parent2 = random.choice(graded)
+        parent1 = graded[0]  # Select the individual with the highest fitness as parent1
+        parent2 = random.choice(graded)  # Randomly select parent2 from the graded population
 
         child = crossover(parent1, parent2)
         if random.random() < mutation_rate:
@@ -89,24 +98,52 @@ def main():
 
     mutation_rate = INITIAL_MUTATION_RATE
 
+    # Lists to store generation number and best fitness score
+    generation_numbers = []
+    best_fitness_scores = []
+
     # Evolution loop
     for generation in range(1, NUM_GENERATIONS + 1):
         population = evolve(population, mutation_rate)
         best_fitness = fitness(population[0])
         print(f"Generation {generation}: Best Fitness - {best_fitness}")
 
+        # Append generation number and best fitness score to lists
+        generation_numbers.append(generation)
+        best_fitness_scores.append(best_fitness)
+
         # Increase mutation rate gradually
         mutation_rate = min(MAX_MUTATION_RATE, mutation_rate * 1.1)
 
-    # Save best individual from the last generation
+        # Visualize best solution
+        if generation == NUM_GENERATIONS:
+            best_individual = population[0]
+            best_image = Image.new("RGB", (IMAGE_WIDTH, IMAGE_HEIGHT), "white")
+            draw = ImageDraw.Draw(best_image)
+            for vertices, color in best_individual:
+                draw_polygon(draw, vertices, color)
+            plt.imshow(best_image)
+            plt.title(f"Generation {generation}: Best Fitness - {best_fitness}")
+            plt.show()
+
+    # Save last image regardless of interrupt
     best_individual = population[0]
     best_image = Image.new("RGB", (IMAGE_WIDTH, IMAGE_HEIGHT), "white")
     draw = ImageDraw.Draw(best_image)
-    img = np.random.randint(0,1000)
     for vertices, color in best_individual:
         draw_polygon(draw, vertices, color)
-    best_image.save(f"img/result_image{img}.png")
-    print(f"Result image saved as 'result_image{img}.png'")
+    img = np.random.randint(1000)
+    best_image.save(f"result_image_{img}.png")
+    print(f"Last generation image saved as result_image_{img}.png.")
+
+    # Plot the evolution of fitness scores
+    plt.plot(generation_numbers, best_fitness_scores)
+    plt.xlabel('Generation')
+    plt.ylabel('Fitness Score')
+    plt.title('Evolution of Fitness Scores')
+    plt.grid(True)
+    plt.show()
+
 
 if __name__ == "__main__":
     main()
