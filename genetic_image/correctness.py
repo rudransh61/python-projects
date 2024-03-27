@@ -1,36 +1,153 @@
+import random
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
+from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import mean_squared_error
+import matplotlib.pyplot as plt
 
-# Load the target image (green circle on white background)
-target_image = Image.open("circle.jpg").convert("RGB")
+# Parameters
+POPULATION_SIZE = 200
+NUM_POLYGONS = 50
+MAX_VERTICES = 30
+IMAGE_WIDTH = 200
+IMAGE_HEIGHT = 200
+NUM_GENERATIONS = 500
+INITIAL_MUTATION_RATE = 0.05
+MAX_MUTATION_RATE = 0.9
 
-# Function to calculate percentage correctness
-def calculate_percentage_correctness(generated_image_path):
-    # Load the generated image
-    generated_image = Image.open(generated_image_path).convert("RGB")
-    
-    # Resize the generated image to match the target image dimensions (200x200)
-    generated_image_resized = generated_image.resize((200, 200))
-    
-    # Resize the target image to match the generated image dimensions
-    target_image_resized = target_image.resize(generated_image_resized.size)
-    
-    # Convert images to numpy arrays for pixel-wise comparison
-    np_generated_image = np.array(generated_image_resized)
-    np_target_image = np.array(target_image_resized)
-    
-    # Count the number of pixels that are the same between the generated and target images
-    num_same_pixels = np.sum(np.all(np_generated_image == np_target_image, axis=-1))
-    
-    # Calculate total number of pixels in the images
-    total_pixels = np_generated_image.shape[0] * np_generated_image.shape[1]
-    
-    # Calculate percentage correctness
-    percentage_correctness = (num_same_pixels / total_pixels) * 100
-    
-    return percentage_correctness
+# Load target image
+target_image = np.array(Image.open("images.jpg").convert("RGB"))
 
-# Example usage:
-generated_image_path = "img/result_image508.png"  # Path to the generated image
-percentage_correctness = calculate_percentage_correctness(generated_image_path)
-print("Percentage Correctness:", percentage_correctness)
+def random_color():
+    return tuple(np.random.randint(0, 256, size=3))
+
+def random_polygon():
+    num_vertices = random.randint(3, MAX_VERTICES)
+    vertices = [(random.randint(0, IMAGE_WIDTH), random.randint(0, IMAGE_HEIGHT)) for _ in range(num_vertices)]
+    color = random_color()
+    return vertices, color
+
+def draw_polygon(draw, vertices, color):
+    draw.polygon(vertices, fill=color)
+
+def generate_individual():
+    return [random_polygon() for _ in range(NUM_POLYGONS)]
+
+def fitness(individual):
+    # Create image based on individual
+    image = Image.new("RGB", (IMAGE_WIDTH, IMAGE_HEIGHT), "white")
+    draw = ImageDraw.Draw(image)
+    for vertices, color in individual:
+        draw_polygon(draw, vertices, color)
+    # Resize the image to match the target image dimensions
+    image = image.resize((target_image.shape[1], target_image.shape[0]))
+
+    # Convert images to numpy arrays
+    target_array = target_image
+    generated_array = np.array(image)
+
+    # Compute Mean Squared Error (MSE)
+    mse = mean_squared_error(target_array, generated_array)
+
+    # Compute Structural Similarity Index (SSIM)
+    ssim_score = ssim(target_array, generated_array, multichannel=True)
+
+    # Combine MSE and SSIM scores (you can adjust weights as needed)
+    fitness_score = -mse + ssim_score * 1000
+
+    return fitness_score
+
+def mutate_individual(individual, mutation_rate):
+    mutated_individual = []
+    for vertices, color in individual:
+        mutated_vertices = [(x + random.randint(-10, 10), y + random.randint(-10, 10)) for x, y in vertices]
+        mutated_color = tuple(min(max(c + random.randint(-30, 30), 0), 255) for c in color)
+        mutated_individual.append((mutated_vertices, mutated_color))
+    return mutated_individual
+
+def crossover(parent1, parent2):
+    child = []
+    for gene1, gene2 in zip(parent1, parent2):
+        if random.random() < 0.5:
+            child.append(gene1)
+        else:
+            child.append(gene2)
+    return child
+
+def evolve(population, mutation_rate):
+    graded = [(fitness(ind), ind) for ind in population]
+    graded = [x[1] for x in sorted(graded, key=lambda x: x[0], reverse=True)]  # Sort by fitness
+
+    elites_count = 10  # Number of elites to preserve
+    elites = graded[:elites_count]
+
+    offspring = []
+
+    for _ in range(len(population) - elites_count):
+        parent1 = graded[0]  # Select the individual with the highest fitness as parent1
+        parent2 = random.choice(graded)  # Randomly select parent2 from the graded population
+
+        child = crossover(parent1, parent2)
+        if random.random() < mutation_rate:
+            child = mutate_individual(child, mutation_rate)
+
+        offspring.append(child)
+
+    next_generation = elites + offspring
+
+    return next_generation
+
+def main():
+    # Initialize population
+    population = [generate_individual() for _ in range(POPULATION_SIZE)]
+
+    mutation_rate = INITIAL_MUTATION_RATE
+
+    # Lists to store generation number and best fitness score
+    generation_numbers = []
+    best_fitness_scores = []
+
+    # Evolution loop
+    for generation in range(1, NUM_GENERATIONS + 1):
+        population = evolve(population, mutation_rate)
+        best_fitness = fitness(population[0])
+        print(f"Generation {generation}: Best Fitness - {best_fitness}")
+
+        # Append generation number and best fitness score to lists
+        generation_numbers.append(generation)
+        best_fitness_scores.append(best_fitness)
+
+        # Increase mutation rate gradually
+        mutation_rate = min(MAX_MUTATION_RATE, mutation_rate * 1.1)
+
+        # Visualize best solution
+        if generation == NUM_GENERATIONS:
+            best_individual = population[0]
+            best_image = Image.new("RGB", (IMAGE_WIDTH, IMAGE_HEIGHT), "white")
+            draw = ImageDraw.Draw(best_image)
+            for vertices, color in best_individual:
+                draw_polygon(draw, vertices, color)
+            plt.imshow(best_image)
+            plt.title(f"Generation {generation}: Best Fitness - {best_fitness}")
+            plt.show()
+
+    # Save last image regardless of interrupt
+    best_individual = population[0]
+    best_image = Image.new("RGB", (IMAGE_WIDTH, IMAGE_HEIGHT), "white")
+    draw = ImageDraw.Draw(best_image)
+    for vertices, color in best_individual:
+        draw_polygon(draw, vertices, color)
+    img = np.random.randint(1000)
+    best_image.save(f"result_image_{img}.png")
+    print(f"Last generation image saved as result_image_{img}.png.")
+
+    # Plot the evolution of fitness scores
+    plt.plot(generation_numbers, best_fitness_scores)
+    plt.xlabel('Generation')
+    plt.ylabel('Fitness Score')
+    plt.title('Evolution of Fitness Scores')
+    plt.grid(True)
+    plt.show()
+
+if __name__ == "__main__":
+    main()
